@@ -2,8 +2,8 @@
 // Use of this source code is governed under the Apache License, Version 2.0
 // that can be found in the LICENSE file.
 
-// Package shell makes a sandboxed shell available as a tool to the LLM.
-package shell
+// Package shelltool makes a sandboxed shell available as a tool to the LLM.
+package shelltool
 
 import (
 	"fmt"

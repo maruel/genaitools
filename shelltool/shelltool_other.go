@@ -4,7 +4,7 @@
 
 //go:build !windows && !darwin
 
-package shell
+package shelltool
 
 import (
 	"context"

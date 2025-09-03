@@ -5,6 +5,7 @@ go 1.24.4
 require (
 	github.com/maruel/genai v0.0.0-20250903173547-1453c372194c
 	github.com/maruel/roundtrippers v0.5.0
+	golang.org/x/sys v0.35.0
 )
 
 require (
