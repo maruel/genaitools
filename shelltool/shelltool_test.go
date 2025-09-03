@@ -52,7 +52,8 @@ func TestGetSandbox(t *testing.T) {
 		t.Run("subprocess", func(t *testing.T) {
 			script := "/bin/ls\n"
 			if runtime.GOOS == "windows" {
-				t.Skip("TODO")
+				// Intentionally use a subprocess to list the files.
+				script = "cmd /c dir /b"
 			}
 
 			dirEntries, err := os.ReadDir(".")
@@ -129,7 +130,8 @@ func TestGetSandbox(t *testing.T) {
 		t.Run("subprocess", func(t *testing.T) {
 			script := "/bin/ls\n"
 			if runtime.GOOS == "windows" {
-				t.Skip("TODO")
+				// Intentionally use a subprocess to list the files.
+				script = "cmd /c dir /b"
 			}
 			dirEntries, err := os.ReadDir(".")
 			if err != nil {
