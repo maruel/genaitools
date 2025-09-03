@@ -82,7 +82,7 @@ func TestGetSandbox(t *testing.T) {
 		t.Run("network", func(t *testing.T) {
 			script := "curl -sS ifconfig.co\n"
 			if runtime.GOOS == "windows" {
-				script = "curl ifconfig.co\n"
+				script = "(Invoke-WebRequest -Uri https://ifconfig.co -UserAgent curl).Content\n"
 			}
 			b, _ := json.Marshal(&arguments{Script: script})
 			msg := genai.Message{Replies: []genai.Reply{{ToolCall: genai.ToolCall{Name: opts.Tools[0].Name, Arguments: string(b)}}}}
@@ -159,7 +159,7 @@ func TestGetSandbox(t *testing.T) {
 		t.Run("network", func(t *testing.T) {
 			script := "curl -sS ifconfig.co\n"
 			if runtime.GOOS == "windows" {
-				script = "curl ifconfig.co\n"
+				script = "(Invoke-WebRequest -Uri https://ifconfig.co -UserAgent curl).Content\n"
 			}
 			b, _ := json.Marshal(&arguments{Script: script})
 			msg := genai.Message{Replies: []genai.Reply{{ToolCall: genai.ToolCall{Name: opts.Tools[0].Name, Arguments: string(b)}}}}
