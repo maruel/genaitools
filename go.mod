@@ -3,8 +3,8 @@ module github.com/maruel/genaitools
 go 1.24.4
 
 require (
-	github.com/maruel/genai v0.0.0-20250811220235-aed5dc34ed45
-	github.com/maruel/roundtrippers v0.4.2
+	github.com/maruel/genai v0.0.0-20250903163054-0966f8a35f94
+	github.com/maruel/roundtrippers v0.5.0
 )
 
 require (
@@ -17,6 +17,5 @@ require (
 	github.com/maruel/httpjson v0.5.0 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	golang.org/x/sync v0.16.0 // indirect
-	gopkg.in/dnaeon/go-vcr.v4 v4.0.4 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

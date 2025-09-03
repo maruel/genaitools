@@ -28,23 +28,24 @@ func Example_genSyncWithToolCallLoop_with_custom_HTTP_Header() {
 			Header:    http.Header{"anthropic-beta": []string{"interleaved-thinking-2025-05-14"}},
 		}
 	}
-	c, err := anthropic.New(&genai.OptionsProvider{Model: "claude-sonnet-4-20250514"}, wrapper)
+	ctx := context.Background()
+	c, err := anthropic.New(ctx, &genai.ProviderOptions{Model: "claude-sonnet-4-20250514"}, wrapper)
 	if err != nil {
 		log.Fatal(err)
 	}
 	msgs := genai.Messages{
 		genai.NewTextMessage("What is 3214 + 5632? Leverage the tool available to you to tell me the answer. Do not explain. Be terse. Include only the answer."),
 	}
-	opts := genai.OptionsText{
+	opts := genai.OptionsTools{
 		Tools: []genai.ToolDef{genaitools.Arithmetic},
 		// Force the LLM to do a tool call first.
-		ToolCallRequest: genai.ToolCallRequired,
+		Force: genai.ToolCallRequired,
 	}
-	newMsgs, _, err := adapters.GenSyncWithToolCallLoop(context.Background(), c, msgs, &opts)
+	newMsgs, _, err := adapters.GenSyncWithToolCallLoop(ctx, c, msgs, &opts)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("%s\n", newMsgs[len(newMsgs)-1].AsText())
+	fmt.Printf("%s\n", newMsgs[len(newMsgs)-1].String())
 	// Remove this comment line to run the example.
 	// Output:
 	// 8846
