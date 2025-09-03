@@ -1,0 +1,146 @@
+---
+version: 2
+interactions:
+- id: 0
+  request:
+    proto: HTTP/1.1
+    proto_major: 1
+    proto_minor: 1
+    content_length: 0
+    host: api.cerebras.ai
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+    url: https://api.cerebras.ai/v1/models
+    method: GET
+  response:
+    proto: HTTP/2.0
+    proto_major: 2
+    proto_minor: 0
+    content_length: -1
+    uncompressed: true
+    body: "{\"object\":\"list\",\"data\":[{\"id\":\"llama3.1-8b\",\"object\":\"model\",\"created\":0,\"owned_by\":\"Cerebras\"},{\"id\":\"qwen-3-coder-480b\",\"object\":\"model\",\"created\":0,\"owned_by\":\"Cerebras\"},{\"id\":\"llama-4-maverick-17b-128e-instruct\",\"object\":\"model\",\"created\":0,\"owned_by\":\"Cerebras\"},{\"id\":\"llama-3.3-70b\",\"object\":\"model\",\"created\":0,\"owned_by\":\"Cerebras\"},{\"id\":\"llama-4-scout-17b-16e-instruct\",\"object\":\"model\",\"created\":0,\"owned_by\":\"Cerebras\"},{\"id\":\"qwen-3-32b\",\"object\":\"model\",\"created\":0,\"owned_by\":\"Cerebras\"},{\"id\":\"qwen-3-235b-a22b-instruct-2507\",\"object\":\"model\",\"created\":0,\"owned_by\":\"Cerebras\"},{\"id\":\"gpt-oss-120b\",\"object\":\"model\",\"created\":0,\"owned_by\":\"Cerebras\"},{\"id\":\"qwen-3-235b-a22b-thinking-2507\",\"object\":\"model\",\"created\":0,\"owned_by\":\"Cerebras\"}]}"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=86400
+      Cf-Cache-Status:
+      - DYNAMIC
+      Cf-Ray:
+      - 979705461a5836d2-YYZ
+      Content-Type:
+      - application/json
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=3600; includeSubDomains
+      X-Content-Type-Options:
+      - nosniff
+    status: 200 OK
+    code: 200
+    duration: 175ms
+- id: 1
+  request:
+    proto: HTTP/1.1
+    proto_major: 1
+    proto_minor: 1
+    content_length: 677
+    host: api.cerebras.ai
+    body: "{\"model\":\"qwen-3-235b-a22b-instruct-2507\",\"messages\":[{\"role\":\"user\",\"content\":\"What is 321494372 + 56032?\"}],\"tool_choice\":\"required\",\"tools\":[{\"type\":\"function\",\"function\":{\"name\":\"arithmetic\",\"description\":\"Calculates a mathematical arithmetic operation with two numbers and returns the result.\",\"parameters\":{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"properties\":{\"operation\":{\"type\":\"string\",\"enum\":[\"addition\",\"subtraction\",\"multiplication\",\"division\"]},\"first_number\":{\"type\":\"number\"},\"second_number\":{\"type\":\"number\"}},\"additionalProperties\":false,\"type\":\"object\",\"required\":[\"operation\",\"first_number\",\"second_number\"]}}}],\"parallel_tool_calls\":true}\n"
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+    url: https://api.cerebras.ai/v1/chat/completions
+    method: POST
+  response:
+    proto: HTTP/2.0
+    proto_major: 2
+    proto_minor: 0
+    content_length: -1
+    uncompressed: true
+    body: "{\"id\":\"chatcmpl-0580a7dd-b2a7-4059-b292-8765bec0af83\",\"choices\":[{\"finish_reason\":\"tool_calls\",\"index\":0,\"message\":{\"tool_calls\":[{\"id\":\"4102f0a0e\",\"type\":\"function\",\"function\":{\"name\":\"arithmetic\",\"arguments\":\"{\\\"operation\\\": \\\"addition\\\", \\\"first_number\\\": 321494372, \\\"second_number\\\": 56032}\"}}],\"role\":\"assistant\"}}],\"created\":1756921103,\"model\":\"qwen-3-235b-a22b-instruct-2507\",\"system_fingerprint\":\"fp_b79cb466bb8a1b29b77f\",\"object\":\"chat.completion\",\"usage\":{\"prompt_tokens\":266,\"completion_tokens\":44,\"total_tokens\":310,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"time_info\":{\"queue_time\":0.429571202,\"prompt_time\":0.012855518,\"completion_time\":0.005988608,\"total_time\":0.4497387409210205,\"created\":1756921103}}"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=86400
+      Cf-Cache-Status:
+      - DYNAMIC
+      Cf-Ray:
+      - 97970546cb2336d2-YYZ
+      Content-Type:
+      - application/json
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=3600; includeSubDomains
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit-Requests-Day:
+      - "14400"
+      X-Ratelimit-Limit-Tokens-Minute:
+      - "60000"
+      X-Ratelimit-Remaining-Requests-Day:
+      - "14392"
+      X-Ratelimit-Remaining-Tokens-Minute:
+      - "60000"
+      X-Ratelimit-Reset-Requests-Day:
+      - "22895.00437760353"
+      X-Ratelimit-Reset-Tokens-Minute:
+      - "35.004377603530884"
+    status: 200 OK
+    code: 200
+    duration: 602ms
+- id: 2
+  request:
+    proto: HTTP/1.1
+    proto_major: 1
+    proto_minor: 1
+    content_length: 963
+    host: api.cerebras.ai
+    body: "{\"model\":\"qwen-3-235b-a22b-instruct-2507\",\"messages\":[{\"role\":\"user\",\"content\":\"What is 321494372 + 56032?\"},{\"role\":\"assistant\",\"tool_calls\":[{\"type\":\"function\",\"id\":\"4102f0a0e\",\"function\":{\"name\":\"arithmetic\",\"arguments\":\"{\\\"operation\\\": \\\"addition\\\", \\\"first_number\\\": 321494372, \\\"second_number\\\": 56032}\"}}]},{\"role\":\"tool\",\"content\":\"321550404\",\"tool_call_id\":\"4102f0a0e\",\"name\":\"arithmetic\"}],\"tool_choice\":\"auto\",\"tools\":[{\"type\":\"function\",\"function\":{\"name\":\"arithmetic\",\"description\":\"Calculates a mathematical arithmetic operation with two numbers and returns the result.\",\"parameters\":{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"properties\":{\"operation\":{\"type\":\"string\",\"enum\":[\"addition\",\"subtraction\",\"multiplication\",\"division\"]},\"first_number\":{\"type\":\"number\"},\"second_number\":{\"type\":\"number\"}},\"additionalProperties\":false,\"type\":\"object\",\"required\":[\"operation\",\"first_number\",\"second_number\"]}}}],\"parallel_tool_calls\":true}\n"
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+    url: https://api.cerebras.ai/v1/chat/completions
+    method: POST
+  response:
+    proto: HTTP/2.0
+    proto_major: 2
+    proto_minor: 0
+    content_length: -1
+    uncompressed: true
+    body: "{\"id\":\"chatcmpl-4cb8701e-2816-4c98-86a3-886793dabe2b\",\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"The result of 321494372 + 56032 is 321550404.\",\"role\":\"assistant\"}}],\"created\":1756921103,\"model\":\"qwen-3-235b-a22b-instruct-2507\",\"system_fingerprint\":\"fp_b79cb466bb8a1b29b77f\",\"object\":\"chat.completion\",\"usage\":{\"prompt_tokens\":321,\"completion_tokens\":33,\"total_tokens\":354,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"time_info\":{\"queue_time\":0.002405805,\"prompt_time\":0.016043716,\"completion_time\":0.025559675,\"total_time\":0.04550504684448242,\"created\":1756921103}}"
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=86400
+      Cf-Cache-Status:
+      - DYNAMIC
+      Cf-Ray:
+      - 9797054a884636d2-YYZ
+      Content-Type:
+      - application/json
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - cloudflare
+      Strict-Transport-Security:
+      - max-age=3600; includeSubDomains
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit-Requests-Day:
+      - "14400"
+      X-Ratelimit-Limit-Tokens-Minute:
+      - "60000"
+      X-Ratelimit-Remaining-Requests-Day:
+      - "14391"
+      X-Ratelimit-Remaining-Tokens-Minute:
+      - "59690"
+      X-Ratelimit-Reset-Requests-Day:
+      - "22894.793560743332"
+      X-Ratelimit-Reset-Tokens-Minute:
+      - "34.79356074333191"
+    status: 200 OK
+    code: 200
+    duration: 212ms
