@@ -85,12 +85,12 @@ func doArithmetic(ctx context.Context, args *calculateArgs) (string, error) {
 }
 
 // GetTodayClockTime returns the current time and day in a format that the LLM
-// can understand. It includes the weekend.
+// can understand. It includes the weekday.
 var GetTodayClockTime = genai.ToolDef{
-	Name:        "get_today_date_current_clock_time",
-	Description: "Get the current clock time and today's date.",
+	Name:        "today_date_current_clock_time",
+	Description: "Provides the current clock time and today's date.",
 	Callback: func(ctx context.Context, e *empty) (string, error) {
-		return time.Now().Format("Monday 2006-01-02 15:04:05"), nil
+		return time.Now().Format("Monday 2006-01-02 15:04"), nil
 	},
 }
 

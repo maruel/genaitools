@@ -136,8 +136,8 @@ func TestGetTodayClockTime(t *testing.T) {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	// Verify the format follows "Monday 2006-01-02 15:04:05"
-	expectedPattern := `^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday) [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$`
+	// Verify the format follows "Monday 2006-01-02 15:04"
+	expectedPattern := `^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday) [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$`
 	matched, err := regexp.MatchString(expectedPattern, result)
 	if err != nil {
 		t.Fatalf("Regex error: %v", err)
@@ -147,7 +147,7 @@ func TestGetTodayClockTime(t *testing.T) {
 	}
 
 	// Verify the time is within a reasonable range (last minute)
-	parsedTime, err := time.ParseInLocation("Monday 2006-01-02 15:04:05", result, time.Local)
+	parsedTime, err := time.ParseInLocation("Monday 2006-01-02 15:04", result, time.Local)
 	if err != nil {
 		t.Fatalf("Failed to parse time %q: %v", result, err)
 	}
