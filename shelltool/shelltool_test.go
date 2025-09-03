@@ -100,7 +100,12 @@ func TestGetSandbox(t *testing.T) {
 	t.Run("no network access", func(t *testing.T) {
 		opts, err := New(false)
 		if err != nil {
+			if runtime.GOOS == "windows" {
+				t.Skip("please send a RP")
+			}
 			t.Fatal(err)
+		} else if runtime.GOOS == "windows" {
+			t.Fatal("should have failed")
 		}
 		if opts == nil {
 			t.Fatal("excepted opts")

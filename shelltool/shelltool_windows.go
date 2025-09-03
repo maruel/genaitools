@@ -7,6 +7,7 @@ package shelltool
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -31,21 +32,24 @@ const (
 	LUAToken                                = 0x4
 	WriteRestricted                         = 0x8
 
-	// File System Access
-	WellKnownSIDCapabilityDocumentsLibrary = "S-1-15-3-1" // Documents folder
-	WellKnownSIDCapabilityPicturesLibrary  = "S-1-15-3-2" // Pictures folder
-	WellKnownSIDCapabilityVideosLibrary    = "S-1-15-3-3" // Videos folder
-	WellKnownSIDCapabilityMusicLibrary     = "S-1-15-3-4" // Music folder
-	WellKnownSIDCapabilityRemovableStorage = "S-1-15-3-5" // USB drives, etc.
+	// https://devblogs.microsoft.com/oldnewthing/20220503-00/?p=106557
+	// I failed to find a proper list elsewhere.
 
 	// Network Access
 	WellKnownSIDCapabilityInternetClient             = "S-1-15-3-1" // Outbound internet
 	WellKnownSIDCapabilityInternetClientServer       = "S-1-15-3-2" // Inbound + outbound internet
 	WellKnownSIDCapabilityPrivateNetworkClientServer = "S-1-15-3-3" // Local network
 
+	// File System Access
+	WellKnownSIDCapabilityPicturesLibrary  = "S-1-15-3-4" // Pictures folder
+	WellKnownSIDCapabilityVideosLibrary    = "S-1-15-3-5" // Videos folder
+	WellKnownSIDCapabilityMusicLibrary     = "S-1-15-3-6" // Music folder
+	WellKnownSIDCapabilityDocumentsLibrary = "S-1-15-3-7" // Documents folder
+
 	// System Access
+	WellKnownSIDCapabilityEnterpriseAuthentication = "S-1-15-3-8"  // Enterprise auth
 	WellKnownSIDCapabilitySharedUserCertificates   = "S-1-15-3-9"  // Certificate access
-	WellKnownSIDCapabilityEnterpriseAuthentication = "S-1-15-3-10" // Enterprise auth
+	WellKnownSIDCapabilityRemovableStorage         = "S-1-15-3-10" // USB drives, etc.
 
 	// Registry Access (limited)
 	WellKnownSIDCapabilityRegistryRead = "S-1-15-3-1024-1065365936-1281604716-3511738428-1654721687-432734479-3232135806-4053264122-3456934681"
@@ -59,6 +63,12 @@ type SecurityCapabilities struct {
 }
 
 func getShellTool(allowNetwork bool) (*genai.OptionsTools, error) {
+	if !allowNetwork {
+		// On Go1.25.0, it randomly causes, or fail at attributeList.Update():
+		//   runtime: waitforsingleobject wait_failed; errno=6
+		//   fatal error: runtime.semasleep wait_failed
+		return nil, errors.New("please send a PR to finish the AppContainer code")
+	}
 	return &genai.OptionsTools{
 		Tools: []genai.ToolDef{
 			{
@@ -113,23 +123,27 @@ func runWithAppContainer(cmdLine string, allowNetwork bool) (string, error) {
 			WellKnownSIDCapabilityVideosLibrary,
 			WellKnownSIDCapabilityMusicLibrary,
 			WellKnownSIDCapabilityRemovableStorage,
-			WellKnownSIDCapabilityInternetClient,
-			WellKnownSIDCapabilityInternetClientServer,
-			WellKnownSIDCapabilityPrivateNetworkClientServer,
+			// WellKnownSIDCapabilityInternetClient,
+			// WellKnownSIDCapabilityInternetClientServer,
+			// WellKnownSIDCapabilityPrivateNetworkClientServer,
 		}
 		sidAndAttrs, err2 := createCapabilitySIDs(caps)
 		if err2 != nil {
 			return "", err2
 		}
-		profileName := "ReadOnlyAppContainer"
-		if err = createContainer(windows.StringToUTF16Ptr(profileName)); err != nil {
+		profileName := "genaitools-shelltool-Container"
+		appContainerSid, err := createContainer(profileName, sidAndAttrs)
+		if err != nil {
 			return "", err
 		}
-		defer procDeleteAppContainerProfile.Call(uintptr(unsafe.Pointer(windows.StringToUTF16Ptr(profileName))))
-		appContainerSid, err2 := createAppContainerSid(profileName)
-		if err2 != nil {
-			return "", fmt.Errorf("failed to get AppContainer SID: %v", err2)
-		}
+		defer windows.FreeSid(appContainerSid)
+		/*
+			defer procDeleteAppContainerProfile.Call(uintptr(unsafe.Pointer(windows.StringToUTF16Ptr(profileName))))
+			appContainerSid, err2 := createAppContainerSid(profileName)
+			if err2 != nil {
+				return "", fmt.Errorf("failed to get AppContainer SID: %v", err2)
+			}
+		*/
 		secCaps := SecurityCapabilities{
 			AppContainerSid: appContainerSid,
 			Capabilities:    &sidAndAttrs[0],
@@ -141,6 +155,7 @@ func runWithAppContainer(cmdLine string, allowNetwork bool) (string, error) {
 		}
 		attrList = attrListCtr.List()
 		defer attrListCtr.Delete()
+		//*/
 	}
 
 	// There isn't much point into separating stdout and stderr to send it back to the LLM, so merge both.
@@ -208,16 +223,18 @@ func readFromPipe(handle windows.Handle) string {
 	return buf.String()
 }
 
-func createContainer(profileNamePtr *uint16) error {
-	displayNamePtr := windows.StringToUTF16Ptr("Read-Only App Container")
-	descriptionPtr := windows.StringToUTF16Ptr("Highly restricted read-only App Container")
+func createContainer(profileName string, sidAndAttrs []windows.SIDAndAttributes) (*windows.SID, error) {
+	profileNamePtr := windows.StringToUTF16Ptr(profileName)
+	displayNamePtr := windows.StringToUTF16Ptr("shelltool App Container")
+	descriptionPtr := windows.StringToUTF16Ptr("Highly restricted shelltool App Container")
 	var appContainerSid *windows.SID
+	// https://learn.microsoft.com/en-us/windows/win32/api/userenv/nf-userenv-createappcontainerprofile
 	ret, _, err := procCreateAppContainerProfile.Call(
 		uintptr(unsafe.Pointer(profileNamePtr)),
 		uintptr(unsafe.Pointer(displayNamePtr)),
 		uintptr(unsafe.Pointer(descriptionPtr)),
-		0, // pCapabilities - NULL for no capabilities
-		0, // dwCapabilityCount - 0 for maximum restriction
+		uintptr(unsafe.Pointer(&sidAndAttrs[0])), // pCapabilities - NULL for no capabilities
+		uintptr(len(sidAndAttrs)),                // dwCapabilityCount - 0 for maximum restriction
 		uintptr(unsafe.Pointer(&appContainerSid)),
 	)
 	if ret != 0 {
@@ -229,18 +246,19 @@ func createContainer(profileNamePtr *uint16) error {
 				uintptr(unsafe.Pointer(profileNamePtr)),
 				uintptr(unsafe.Pointer(displayNamePtr)),
 				uintptr(unsafe.Pointer(descriptionPtr)),
-				0, // pCapabilities
-				0, // dwCapabilityCount
+				uintptr(unsafe.Pointer(&sidAndAttrs[0])), // pCapabilities
+				uintptr(len(sidAndAttrs)),                // dwCapabilityCount
 				uintptr(unsafe.Pointer(&appContainerSid)),
 			)
 		}
 		if ret != 0 {
-			return fmt.Errorf("CreateAppContainerProfile failed with code: 0x%08x, error: %w", ret, err)
+			return nil, fmt.Errorf("CreateAppContainerProfile failed with code: 0x%08x, error: %w", ret, err)
 		}
 	}
-	return nil
+	return appContainerSid, nil
 }
 
+/*
 func createAppContainerSid(profileName string) (*windows.SID, error) {
 	var sid *windows.SID
 	ret, _, err := procDeriveAppContainerSidFromAppContainerName.Call(
@@ -252,20 +270,19 @@ func createAppContainerSid(profileName string) (*windows.SID, error) {
 	}
 	return sid, nil
 }
+*/
 
 // https://github.com/rancher-sandbox/rancher-desktop/blob/main/src/go/rdctl/pkg/process/process_windows.go shows job object use.
 // https://blahcat.github.io/2020-12-29-cheap-sandboxing-with-appcontainers/
 func setupAppContainerAttributes(secCaps *SecurityCapabilities) (*windows.ProcThreadAttributeListContainer, error) {
 	// TODO: Testing with zero.
-	attributeList, err := windows.NewProcThreadAttributeList(0)
+	attributeList, err := windows.NewProcThreadAttributeList(1)
 	if err != nil {
 		return nil, fmt.Errorf("failed to NewProcThreadAttributeList: %w", err)
 	}
-	if false {
-		// TODO: Another good idea is PROC_THREAD_ATTRIBUTE_HANDLE_LIST
-		if err = attributeList.Update(ProcThreadAttributeSecurityCapabilities, unsafe.Pointer(secCaps), unsafe.Sizeof(*secCaps)); err != nil {
-			return nil, fmt.Errorf("failed to update: %w", err)
-		}
+	// TODO: Another good idea is PROC_THREAD_ATTRIBUTE_HANDLE_LIST
+	if err = attributeList.Update(ProcThreadAttributeSecurityCapabilities, unsafe.Pointer(secCaps), unsafe.Sizeof(*secCaps)); err != nil {
+		return nil, fmt.Errorf("failed to update ProcThreadAttributeSecurityCapabilities: %w", err)
 	}
 	return attributeList, err
 }
