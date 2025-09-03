@@ -18,6 +18,10 @@ import (
 )
 
 func TestGetSandbox(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Please send a PR to enable back")
+	}
+
 	ipV4 := regexp.MustCompile(`\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}`)
 	t.Run("with network access", func(t *testing.T) {
 		opts, err := New(true)

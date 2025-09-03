@@ -63,6 +63,9 @@ type SecurityCapabilities struct {
 }
 
 func getShellTool(allowNetwork bool) (*genai.OptionsTools, error) {
+	if true {
+		return nil, errors.New("to be finished later")
+	}
 	if !allowNetwork {
 		// It randomly causes, or fail at attributeList.Update():
 		//   runtime: waitforsingleobject wait_failed; errno=6
