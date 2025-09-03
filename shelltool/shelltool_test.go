@@ -6,6 +6,7 @@ package shelltool
 
 import (
 	"encoding/json"
+	"os"
 	"regexp"
 	"runtime"
 	"slices"
@@ -53,12 +54,14 @@ func TestGetSandbox(t *testing.T) {
 			if runtime.GOOS == "windows" {
 				t.Skip("TODO")
 			}
-			want := []string{
-				"shell.go",
-				"shell_darwin.go",
-				"shell_other.go",
-				"shell_test.go",
-				"shell_windows.go",
+
+			dirEntries, err := os.ReadDir(".")
+			if err != nil {
+				t.Fatal(err)
+			}
+			want := make([]string, 0, len(dirEntries))
+			for _, entry := range dirEntries {
+				want = append(want, entry.Name())
 			}
 			sort.Strings(want)
 			b, _ := json.Marshal(&arguments{Script: script})
@@ -128,12 +131,13 @@ func TestGetSandbox(t *testing.T) {
 			if runtime.GOOS == "windows" {
 				t.Skip("TODO")
 			}
-			want := []string{
-				"shell.go",
-				"shell_darwin.go",
-				"shell_other.go",
-				"shell_test.go",
-				"shell_windows.go",
+			dirEntries, err := os.ReadDir(".")
+			if err != nil {
+				t.Fatal(err)
+			}
+			want := make([]string, 0, len(dirEntries))
+			for _, entry := range dirEntries {
+				want = append(want, entry.Name())
 			}
 			sort.Strings(want)
 			b, _ := json.Marshal(&arguments{Script: script})
