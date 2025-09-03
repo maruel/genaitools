@@ -51,7 +51,11 @@ const sbNoNetwork = `(version 1)
 (deny default)
 
 ; Allow process execution
-(allow process-exec)
+(allow process-exec*)
+(allow process-fork)
+(allow sysctl-read)
+(allow mach-lookup)
+(allow mach-task-name)
 
 ; Deny all network access
 (deny network*)
