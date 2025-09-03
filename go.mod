@@ -1,6 +1,6 @@
 module github.com/maruel/genaitools
 
-go 1.25.0
+go 1.24.4
 
 require (
 	github.com/maruel/genai v0.0.0-20250903173547-1453c372194c

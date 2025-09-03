@@ -64,7 +64,7 @@ type SecurityCapabilities struct {
 
 func getShellTool(allowNetwork bool) (*genai.OptionsTools, error) {
 	if !allowNetwork {
-		// On Go1.25.0, it randomly causes, or fail at attributeList.Update():
+		// It randomly causes, or fail at attributeList.Update():
 		//   runtime: waitforsingleobject wait_failed; errno=6
 		//   fatal error: runtime.semasleep wait_failed
 		return nil, errors.New("please send a PR to finish the AppContainer code")
@@ -155,7 +155,6 @@ func runWithAppContainer(cmdLine string, allowNetwork bool) (string, error) {
 		}
 		attrList = attrListCtr.List()
 		defer attrListCtr.Delete()
-		//*/
 	}
 
 	// There isn't much point into separating stdout and stderr to send it back to the LLM, so merge both.
