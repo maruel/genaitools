@@ -18,12 +18,12 @@ import (
 )
 
 var (
-	advapi32                                      = windows.NewLazyDLL("advapi32.dll")
-	procCreateRestrictedToken                     = advapi32.NewProc("CreateRestrictedToken")
-	userenv                                       = windows.NewLazyDLL("userenv.dll")
-	procCreateAppContainerProfile                 = userenv.NewProc("CreateAppContainerProfile")
-	procDeleteAppContainerProfile                 = userenv.NewProc("DeleteAppContainerProfile")
-	procDeriveAppContainerSidFromAppContainerName = userenv.NewProc("DeriveAppContainerSidFromAppContainerName")
+	advapi32                      = windows.NewLazyDLL("advapi32.dll")
+	procCreateRestrictedToken     = advapi32.NewProc("CreateRestrictedToken")
+	userenv                       = windows.NewLazyDLL("userenv.dll")
+	procCreateAppContainerProfile = userenv.NewProc("CreateAppContainerProfile")
+	procDeleteAppContainerProfile = userenv.NewProc("DeleteAppContainerProfile")
+	// procDeriveAppContainerSidFromAppContainerName = userenv.NewProc("DeriveAppContainerSidFromAppContainerName")
 )
 
 const (
@@ -135,9 +135,9 @@ func runWithAppContainer(cmdLine string, allowNetwork bool) (string, error) {
 			return "", err2
 		}
 		profileName := "genaitools-shelltool-Container"
-		appContainerSid, err := createContainer(profileName, sidAndAttrs)
-		if err != nil {
-			return "", err
+		appContainerSid, err2 := createContainer(profileName, sidAndAttrs)
+		if err2 != nil {
+			return "", err2
 		}
 		defer windows.FreeSid(appContainerSid)
 		/*
