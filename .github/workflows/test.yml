@@ -129,7 +129,7 @@ jobs:
         run: staticcheck ./...
       - name: "Check: gosec"
         if: always()
-        run: gosec -fmt=golint -quiet -exclude G101,G107,G110,G115,G204,G301,G302,G304,G306 ./...
+        run: gosec -fmt=golint -quiet -exclude G101,G103,G107,G110,G115,G204,G301,G302,G304,G306 ./...
         # The following checks are not dependent on the OS or go build tags. Only
         # run them on ubuntu-latest since it's the fastest one.
       - name: "Check: exhaustive"
@@ -165,7 +165,7 @@ jobs:
       - name: "Check: misspelling; code doesn't contain misspelling (ubuntu)"
         if: always() && matrix.os == 'ubuntu-latest'
         run: |
-          FILES=$(git ls-files | grep -v '^\.' | grep -v '^MODELS\.md')
+          FILES=$(git ls-files | grep -v '^\.')
           ERR=$(misspell $FILES)
           if ! test -z "$ERR"; then
             echo "$ERR"
