@@ -64,7 +64,7 @@ func getShellTool(allowNetwork bool) (*genai.OptionsTools, error) {
 			{
 				Name:        "powershell",
 				Description: "Writes the script to a file, executes it via PowerShell on the Windows computer, and returns the output",
-				Callback: func(ctx context.Context, args *shellArguments) (string, error) {
+				Callback: func(ctx context.Context, args *arguments) (string, error) {
 					scriptPath, err := writeTempFile("ask.*.ps1", args.Script)
 					if err != nil {
 						return "", fmt.Errorf("failed to create temp file: %v", err)
