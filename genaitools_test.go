@@ -7,6 +7,7 @@ package genaitools
 import (
 	"context"
 	"encoding/json"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -105,7 +106,11 @@ func TestArithmetic(t *testing.T) {
 	})
 	t.Run("smoketest", func(t *testing.T) {
 		ctx := t.Context()
-		c, err := cerebras.New(ctx, &genai.ProviderOptions{}, httprecord.Wrap(t))
+		popts := genai.ProviderOptions{}
+		if os.Getenv("CEREBRAS_API_KEY") == "" {
+			popts.APIKey = "my_api_key"
+		}
+		c, err := cerebras.New(ctx, &popts, httprecord.Wrap(t))
 		if err != nil {
 			t.Fatal(err)
 		}
