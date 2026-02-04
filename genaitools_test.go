@@ -106,16 +106,16 @@ func TestArithmetic(t *testing.T) {
 	})
 	t.Run("smoketest", func(t *testing.T) {
 		ctx := t.Context()
-		popts := genai.ProviderOptions{}
+		popts := []genai.ProviderOption{genai.ProviderOptionTransportWrapper(httprecord.Wrap(t))}
 		if os.Getenv("CEREBRAS_API_KEY") == "" {
-			popts.APIKey = "my_api_key"
+			popts = append(popts, genai.ProviderOptionAPIKey("my_api_key"))
 		}
-		c, err := cerebras.New(ctx, &popts, httprecord.Wrap(t))
+		c, err := cerebras.New(ctx, popts...)
 		if err != nil {
 			t.Fatal(err)
 		}
 		msgs := genai.Messages{genai.NewTextMessage("What is 321494372 + 56032?")}
-		opts := genai.OptionsTools{
+		opts := genai.GenOptionsTools{
 			Tools: []genai.ToolDef{Arithmetic},
 			Force: genai.ToolCallRequired,
 		}

@@ -16,7 +16,7 @@ import (
 	"github.com/maruel/genai"
 )
 
-func getShellTool(allowNetwork bool) (*genai.OptionsTools, error) {
+func getShellTool(allowNetwork bool) (*genai.GenOptionsTools, error) {
 	bwrapPath, err := exec.LookPath("bwrap")
 	if err != nil {
 		return nil, fmt.Errorf("bwrap not found (install with sudo apt install bubblewrap): %w", err)
@@ -24,7 +24,7 @@ func getShellTool(allowNetwork bool) (*genai.OptionsTools, error) {
 	if _, err := exec.LookPath("/bin/bash"); err != nil {
 		return nil, fmt.Errorf("bash not found: %w", err)
 	}
-	return &genai.OptionsTools{
+	return &genai.GenOptionsTools{
 		Tools: []genai.ToolDef{
 			{
 				Name:        "bash",
