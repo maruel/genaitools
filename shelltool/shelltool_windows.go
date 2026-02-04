@@ -62,7 +62,7 @@ type SecurityCapabilities struct {
 	Reserved        uint32
 }
 
-func getShellTool(allowNetwork bool) (*genai.OptionsTools, error) {
+func getShellTool(allowNetwork bool) (*genai.GenOptionsTools, error) {
 	if true {
 		return nil, errors.New("to be finished later")
 	}
@@ -72,7 +72,7 @@ func getShellTool(allowNetwork bool) (*genai.OptionsTools, error) {
 		//   fatal error: runtime.semasleep wait_failed
 		return nil, errors.New("please send a PR to finish the AppContainer code")
 	}
-	return &genai.OptionsTools{
+	return &genai.GenOptionsTools{
 		Tools: []genai.ToolDef{
 			{
 				Name:        "powershell",
