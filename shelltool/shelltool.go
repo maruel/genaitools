@@ -31,12 +31,12 @@ type arguments struct {
 func writeTempFile(g, content string) (string, error) {
 	f, err := os.CreateTemp("", g)
 	if err != nil {
-		return "", fmt.Errorf("failed to create temp file: %v", err)
+		return "", fmt.Errorf("failed to create temp file: %w", err)
 	}
 	n := f.Name()
 	if _, err = f.WriteString(content); err != nil {
 		_ = os.Remove(n)
-		return "", fmt.Errorf("failed to write to temp file: %v", err)
+		return "", fmt.Errorf("failed to write to temp file: %w", err)
 	}
 	err = f.Close()
 	return n, err

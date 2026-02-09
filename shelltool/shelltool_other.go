@@ -34,7 +34,9 @@ func getShellTool(allowNetwork bool) (*genai.GenOptionTools, error) {
 					if err != nil {
 						return "", err
 					}
-					defer os.Remove(script)
+					defer func() {
+						_ = os.Remove(script)
+					}()
 					v := []string{
 						"--ro-bind", "/", "/",
 						"--tmpfs", "/tmp",
