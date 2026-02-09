@@ -18,14 +18,15 @@ import (
 )
 
 var (
-	advapi32                      = windows.NewLazyDLL("advapi32.dll")
-	procCreateRestrictedToken     = advapi32.NewProc("CreateRestrictedToken")
-	userenv                       = windows.NewLazyDLL("userenv.dll")
-	procCreateAppContainerProfile = userenv.NewProc("CreateAppContainerProfile")
-	procDeleteAppContainerProfile = userenv.NewProc("DeleteAppContainerProfile")
-	// procDeriveAppContainerSidFromAppContainerName = userenv.NewProc("DeriveAppContainerSidFromAppContainerName")
+	advapi32                                      = windows.NewLazyDLL("advapi32.dll")
+	procCreateRestrictedToken                     = advapi32.NewProc("CreateRestrictedToken")
+	userenv                                       = windows.NewLazyDLL("userenv.dll")
+	procCreateAppContainerProfile                 = userenv.NewProc("CreateAppContainerProfile")
+	procDeleteAppContainerProfile                 = userenv.NewProc("DeleteAppContainerProfile")
+	procDeriveAppContainerSidFromAppContainerName = userenv.NewProc("DeriveAppContainerSidFromAppContainerName")
 )
 
+// Win32 APIs.
 const (
 	ProcThreadAttributeSecurityCapabilities = 0x00020005
 	DisableMaxPrivilege                     = 0x1
@@ -35,26 +36,26 @@ const (
 	// https://devblogs.microsoft.com/oldnewthing/20220503-00/?p=106557
 	// I failed to find a proper list elsewhere.
 
-	// Network Access
+	// Network Access.
 
 	WellKnownSIDCapabilityInternetClient             = "S-1-15-3-1" // Outbound internet
 	WellKnownSIDCapabilityInternetClientServer       = "S-1-15-3-2" // Inbound + outbound internet
 	WellKnownSIDCapabilityPrivateNetworkClientServer = "S-1-15-3-3" // Local network
 
-	// File System Access
+	// File System Access.
 
 	WellKnownSIDCapabilityPicturesLibrary  = "S-1-15-3-4" // Pictures folder
 	WellKnownSIDCapabilityVideosLibrary    = "S-1-15-3-5" // Videos folder
 	WellKnownSIDCapabilityMusicLibrary     = "S-1-15-3-6" // Music folder
 	WellKnownSIDCapabilityDocumentsLibrary = "S-1-15-3-7" // Documents folder
 
-	// System Access
+	// System Access.
 
 	WellKnownSIDCapabilityEnterpriseAuthentication = "S-1-15-3-8"  // Enterprise auth
 	WellKnownSIDCapabilitySharedUserCertificates   = "S-1-15-3-9"  // Certificate access
 	WellKnownSIDCapabilityRemovableStorage         = "S-1-15-3-10" // USB drives, etc.
 
-	// Registry Access (limited)
+	// Registry Access (limited).
 
 	WellKnownSIDCapabilityRegistryRead = "S-1-15-3-1024-1065365936-1281604716-3511738428-1654721687-432734479-3232135806-4053264122-3456934681"
 )
@@ -90,7 +91,7 @@ func getShellTool(allowNetwork bool) (*genai.GenOptionTools, error) {
 					defer func() {
 						_ = os.Remove(scriptPath)
 					}()
-					psCmd := fmt.Sprintf("powershell.exe -ExecutionPolicy Bypass -File \"%s\"", scriptPath)
+					psCmd := fmt.Sprintf("powershell.exe -ExecutionPolicy Bypass -File %q", scriptPath)
 					out, err := runWithAppContainer(psCmd, allowNetwork)
 					slog.DebugContext(ctx, "bash", "command", args.Script, "output", out, "err", err)
 					_ = os.Remove(scriptPath)
@@ -153,13 +154,16 @@ func runWithAppContainer(cmdLine string, allowNetwork bool) (string, error) {
 		defer func() {
 			_ = windows.FreeSid(appContainerSid)
 		}()
-		/*
-			defer procDeleteAppContainerProfile.Call(uintptr(unsafe.Pointer(windows.StringToUTF16Ptr(profileName))))
-			appContainerSid, err2 := createAppContainerSid(profileName)
+		if false {
+			defer func() {
+				_, _, _ = procDeleteAppContainerProfile.Call(uintptr(unsafe.Pointer(windows.StringToUTF16Ptr(profileName))))
+			}()
+			// appContainerSid
+			_, err2 := createAppContainerSid(profileName)
 			if err2 != nil {
 				return "", fmt.Errorf("failed to get AppContainer SID: %w", err2)
 			}
-		*/
+		}
 		secCaps := SecurityCapabilities{
 			AppContainerSid: appContainerSid,
 			Capabilities:    &sidAndAttrs[0],
@@ -189,18 +193,22 @@ func runWithAppContainer(cmdLine string, allowNetwork bool) (string, error) {
 		StartupInfo: windows.StartupInfo{
 			Cb:        uint32(unsafe.Sizeof(windows.StartupInfoEx{})),
 			Flags:     windows.STARTF_USESHOWWINDOW | windows.STARTF_USESTDHANDLES,
-			StdOutput: windows.Handle(stdoutWrite),
-			StdErr:    windows.Handle(stdoutWrite),
+			StdOutput: stdoutWrite,
+			StdErr:    stdoutWrite,
 		},
 		ProcThreadAttributeList: attrList,
 	}
 	pi := windows.ProcessInformation{}
 	var flag uint32 = windows.CREATE_NEW_CONSOLE | windows.EXTENDED_STARTUPINFO_PRESENT
-	if err = windows.CreateProcessAsUser(restrictedToken, nil, windows.StringToUTF16Ptr(cmdLine), nil, nil, true, flag, nil, nil, &si.StartupInfo, &pi); err != nil {
+	if err := windows.CreateProcessAsUser(restrictedToken, nil, windows.StringToUTF16Ptr(cmdLine), nil, nil, true, flag, nil, nil, &si.StartupInfo, &pi); err != nil {
 		return "", err
 	}
-	defer windows.CloseHandle(pi.Process)
-	defer windows.CloseHandle(pi.Thread)
+	defer func() {
+		_ = windows.CloseHandle(pi.Process)
+	}()
+	defer func() {
+		_ = windows.CloseHandle(pi.Thread)
+	}()
 	// Close write handles in parent process to avoid blocking.
 	_ = windows.CloseHandle(stdoutWrite)
 	stdout := readFromPipe(stdoutRead)
@@ -278,7 +286,6 @@ func createContainer(profileName string, sidAndAttrs []windows.SIDAndAttributes)
 	return appContainerSid, nil
 }
 
-/*
 func createAppContainerSid(profileName string) (*windows.SID, error) {
 	var sid *windows.SID
 	ret, _, err := procDeriveAppContainerSidFromAppContainerName.Call(
@@ -290,7 +297,6 @@ func createAppContainerSid(profileName string) (*windows.SID, error) {
 	}
 	return sid, nil
 }
-*/
 
 // https://github.com/rancher-sandbox/rancher-desktop/blob/main/src/go/rdctl/pkg/process/process_windows.go shows job object use.
 // https://blahcat.github.io/2020-12-29-cheap-sandboxing-with-appcontainers/
