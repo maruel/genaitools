@@ -95,12 +95,16 @@ func getShellTool(allowNetwork bool) (*genai.GenOptionTools, error) {
 					if err != nil {
 						return "", err
 					}
-					defer os.Remove(askSB)
+					defer func() {
+						_ = os.Remove(askSB)
+					}()
 					script, err := writeTempFile("ask.*.sh", args.Script)
 					if err != nil {
 						return "", err
 					}
-					defer os.Remove(script)
+					defer func() {
+						_ = os.Remove(script)
+					}()
 					cmd := exec.CommandContext(ctx, "/usr/bin/sandbox-exec", "-f", askSB, "/bin/zsh", script)
 					// Increases odds of success on non-English installation.
 					cmd.Env = append(os.Environ(), "LANG=C")

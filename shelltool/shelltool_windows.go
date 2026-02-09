@@ -36,25 +36,30 @@ const (
 	// I failed to find a proper list elsewhere.
 
 	// Network Access
+
 	WellKnownSIDCapabilityInternetClient             = "S-1-15-3-1" // Outbound internet
 	WellKnownSIDCapabilityInternetClientServer       = "S-1-15-3-2" // Inbound + outbound internet
 	WellKnownSIDCapabilityPrivateNetworkClientServer = "S-1-15-3-3" // Local network
 
 	// File System Access
+
 	WellKnownSIDCapabilityPicturesLibrary  = "S-1-15-3-4" // Pictures folder
 	WellKnownSIDCapabilityVideosLibrary    = "S-1-15-3-5" // Videos folder
 	WellKnownSIDCapabilityMusicLibrary     = "S-1-15-3-6" // Music folder
 	WellKnownSIDCapabilityDocumentsLibrary = "S-1-15-3-7" // Documents folder
 
 	// System Access
+
 	WellKnownSIDCapabilityEnterpriseAuthentication = "S-1-15-3-8"  // Enterprise auth
 	WellKnownSIDCapabilitySharedUserCertificates   = "S-1-15-3-9"  // Certificate access
 	WellKnownSIDCapabilityRemovableStorage         = "S-1-15-3-10" // USB drives, etc.
 
 	// Registry Access (limited)
+
 	WellKnownSIDCapabilityRegistryRead = "S-1-15-3-1024-1065365936-1281604716-3511738428-1654721687-432734479-3232135806-4053264122-3456934681"
 )
 
+// SecurityCapabilities is windows stuff.
 type SecurityCapabilities struct {
 	AppContainerSid *windows.SID
 	Capabilities    *windows.SIDAndAttributes
@@ -80,14 +85,16 @@ func getShellTool(allowNetwork bool) (*genai.GenOptionTools, error) {
 				Callback: func(ctx context.Context, args *arguments) (string, error) {
 					scriptPath, err := writeTempFile("ask.*.ps1", args.Script)
 					if err != nil {
-						return "", fmt.Errorf("failed to create temp file: %v", err)
+						return "", fmt.Errorf("failed to create temp file: %w", err)
 					}
-					defer os.Remove(scriptPath)
+					defer func() {
+						_ = os.Remove(scriptPath)
+					}()
 					psCmd := fmt.Sprintf("powershell.exe -ExecutionPolicy Bypass -File \"%s\"", scriptPath)
 					out, err := runWithAppContainer(psCmd, allowNetwork)
-					slog.DebugContext(ctx, "bash", "command", args.Script, "output", string(out), "err", err)
+					slog.DebugContext(ctx, "bash", "command", args.Script, "output", out, "err", err)
 					_ = os.Remove(scriptPath)
-					return string(out), err
+					return out, err
 				},
 			},
 		},
@@ -97,9 +104,11 @@ func getShellTool(allowNetwork bool) (*genai.GenOptionTools, error) {
 func runWithAppContainer(cmdLine string, allowNetwork bool) (string, error) {
 	var token windows.Token
 	if err := windows.OpenProcessToken(windows.CurrentProcess(), windows.TOKEN_ALL_ACCESS, &token); err != nil {
-		return "", fmt.Errorf("failed to open process token: %v", err)
+		return "", fmt.Errorf("failed to open process token: %w", err)
 	}
-	defer token.Close()
+	defer func() {
+		_ = token.Close()
+	}()
 	// https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-createrestrictedtoken
 	var restrictedToken windows.Token
 	ret, _, err := procCreateRestrictedToken.Call(
@@ -114,9 +123,11 @@ func runWithAppContainer(cmdLine string, allowNetwork bool) (string, error) {
 		uintptr(unsafe.Pointer(&restrictedToken)),
 	)
 	if ret == 0 {
-		return "", fmt.Errorf("CreateRestrictedToken failed: %v", err)
+		return "", fmt.Errorf("CreateRestrictedToken failed: %w", err)
 	}
-	defer windows.CloseHandle(windows.Handle(restrictedToken))
+	defer func() {
+		_ = windows.CloseHandle(windows.Handle(restrictedToken))
+	}()
 
 	var attrList *windows.ProcThreadAttributeList
 	if !allowNetwork {
@@ -139,12 +150,14 @@ func runWithAppContainer(cmdLine string, allowNetwork bool) (string, error) {
 		if err2 != nil {
 			return "", err2
 		}
-		defer windows.FreeSid(appContainerSid)
+		defer func() {
+			_ = windows.FreeSid(appContainerSid)
+		}()
 		/*
 			defer procDeleteAppContainerProfile.Call(uintptr(unsafe.Pointer(windows.StringToUTF16Ptr(profileName))))
 			appContainerSid, err2 := createAppContainerSid(profileName)
 			if err2 != nil {
-				return "", fmt.Errorf("failed to get AppContainer SID: %v", err2)
+				return "", fmt.Errorf("failed to get AppContainer SID: %w", err2)
 			}
 		*/
 		secCaps := SecurityCapabilities{
@@ -154,19 +167,25 @@ func runWithAppContainer(cmdLine string, allowNetwork bool) (string, error) {
 		}
 		attrListCtr, err2 := setupAppContainerAttributes(&secCaps)
 		if err2 != nil {
-			return "", fmt.Errorf("failed to setup attribute list: %v", err2)
+			return "", fmt.Errorf("failed to setup attribute list: %w", err2)
 		}
 		attrList = attrListCtr.List()
-		defer attrListCtr.Delete()
+		defer func() {
+			_ = attrListCtr.Delete()
+		}()
 	}
 
 	// There isn't much point into separating stdout and stderr to send it back to the LLM, so merge both.
 	stdoutRead, stdoutWrite, err := createPipe()
 	if err != nil {
-		return "", fmt.Errorf("failed to create stdout pipe: %v", err)
+		return "", fmt.Errorf("failed to create stdout pipe: %w", err)
 	}
-	defer windows.CloseHandle(stdoutRead)
-	defer windows.CloseHandle(stdoutWrite)
+	defer func() {
+		_ = windows.CloseHandle(stdoutRead)
+	}()
+	defer func() {
+		_ = windows.CloseHandle(stdoutWrite)
+	}()
 
 	si := windows.StartupInfoEx{
 		StartupInfo: windows.StartupInfo{
@@ -240,8 +259,9 @@ func createContainer(profileName string, sidAndAttrs []windows.SIDAndAttributes)
 		uintptr(unsafe.Pointer(&appContainerSid)),
 	)
 	if ret != 0 {
-		// If profile already exists, try to delete and recreate
-		if ret == 0x800700B7 { // HRESULT_FROM_WIN32(ERROR_ALREADY_EXISTS)
+		// If profile already exists, try to delete and recreate.
+		// Value from HRESULT_FROM_WIN32(ERROR_ALREADY_EXISTS).
+		if ret == 0x800700B7 {
 			_, _, _ = procDeleteAppContainerProfile.Call(uintptr(unsafe.Pointer(profileNamePtr)))
 			// Try creating again
 			ret, _, err = procCreateAppContainerProfile.Call(
