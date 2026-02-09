@@ -115,7 +115,7 @@ func TestArithmetic(t *testing.T) {
 			t.Fatal(err)
 		}
 		msgs := genai.Messages{genai.NewTextMessage("What is 321494372 + 56032?")}
-		opts := genai.GenOptionsTools{
+		opts := genai.GenOptionTools{
 			Tools: []genai.ToolDef{Arithmetic},
 			Force: genai.ToolCallRequired,
 		}

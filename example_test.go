@@ -36,7 +36,7 @@ func Example_genSyncWithToolCallLoop_with_custom_HTTP_Header() {
 	msgs := genai.Messages{
 		genai.NewTextMessage("What is 3214 + 5632? Leverage the tool available to you to tell me the answer. Do not explain. Be terse. Include only the answer."),
 	}
-	opts := genai.GenOptionsTools{
+	opts := genai.GenOptionTools{
 		Tools: []genai.ToolDef{genaitools.Arithmetic},
 		// Force the LLM to do a tool call first.
 		Force: genai.ToolCallRequired,

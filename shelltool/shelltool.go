@@ -19,7 +19,7 @@ import (
 //   - On macOS, it runs /bin/zsh under sandbox-exec.
 //   - On Windows, it runs powershell under a restricted user token. It is currently disabled due to a crash in the Go runtime.
 //   - On other platforms, it runs bash under bubblewrap. bubblewrap must be installed separately.
-func New(allowNetwork bool) (*genai.GenOptionsTools, error) {
+func New(allowNetwork bool) (*genai.GenOptionTools, error) {
 	return getShellTool(allowNetwork)
 }
 
