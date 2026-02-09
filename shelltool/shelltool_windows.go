@@ -170,9 +170,7 @@ func runWithAppContainer(cmdLine string, allowNetwork bool) (string, error) {
 			return "", fmt.Errorf("failed to setup attribute list: %w", err2)
 		}
 		attrList = attrListCtr.List()
-		defer func() {
-			_ = attrListCtr.Delete()
-		}()
+		defer attrListCtr.Delete()
 	}
 
 	// There isn't much point into separating stdout and stderr to send it back to the LLM, so merge both.
