@@ -106,7 +106,8 @@ func TestArithmetic(t *testing.T) {
 	})
 	t.Run("smoketest", func(t *testing.T) {
 		ctx := t.Context()
-		popts := []genai.ProviderOption{genai.ModelGood, genai.ProviderOptionTransportWrapper(httprecord.Wrap(t))}
+		// Pin the recorded model so provider defaults do not invalidate replay.
+		popts := []genai.ProviderOption{genai.ProviderOptionModel("qwen-3-235b-a22b-instruct-2507"), genai.ProviderOptionTransportWrapper(httprecord.Wrap(t))}
 		if os.Getenv("CEREBRAS_API_KEY") == "" {
 			popts = append(popts, genai.ProviderOptionAPIKey("my_api_key"))
 		}
