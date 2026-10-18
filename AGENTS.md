@@ -1,6 +1,6 @@
 # Working in genaitools
 
-Install Go and uv. `make tools` syncs locked Python development dependencies.
+Install Go and uv. Python commands use `uv run --locked` to manage dependencies.
 Use `make help` to discover targets. Run `make fix`, `make verify`,
 `make build`, and `make test` before committing. Install versioned hooks with
 `make git-hooks`. `make test` runs tests with coverage and benchmark smoke tests.
