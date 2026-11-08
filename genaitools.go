@@ -61,7 +61,7 @@ func doArithmetic(ctx context.Context, args *calculateArgs) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("couldn't understand the second number: %w", err)
 	}
-	r := 0.
+	var r float64
 	switch args.Operation {
 	case "addition":
 		r = n1 + n2

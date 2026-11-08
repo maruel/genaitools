@@ -35,7 +35,7 @@ func TestGetSandbox(t *testing.T) {
 		}
 
 		t.Run("stderr", func(t *testing.T) {
-			script, want := "", ""
+			var script, want string
 			if runtime.GOOS == "windows" {
 				script = "Write-Output \"hi\"\n[System.Console]::Error.WriteLine(\"hello\")\n"
 				want = "hi\r\nhello\r\n"
@@ -55,7 +55,7 @@ func TestGetSandbox(t *testing.T) {
 			}
 		})
 
-		t.Run("subprocess", func(t *testing.T) {
+		t.Run("subprocess", func(t *testing.T) { //nolint:dupl // Exercise the same command with and without network access.
 			script := "/bin/ls\n"
 			if runtime.GOOS == "windows" {
 				// Intentionally use a subprocess to list the files.
@@ -118,7 +118,7 @@ func TestGetSandbox(t *testing.T) {
 		}
 
 		t.Run("stderr", func(t *testing.T) {
-			script, want := "", ""
+			var script, want string
 			if runtime.GOOS == "windows" {
 				script = "Write-Output \"hi\"\n[System.Console]::Error.WriteLine(\"hello\")\n"
 				want = "hi\r\nhello\r\n"
@@ -138,7 +138,7 @@ func TestGetSandbox(t *testing.T) {
 			}
 		})
 
-		t.Run("subprocess", func(t *testing.T) {
+		t.Run("subprocess", func(t *testing.T) { //nolint:dupl // Exercise the same command with and without network access.
 			script := "/bin/ls\n"
 			if runtime.GOOS == "windows" {
 				// Intentionally use a subprocess to list the files.

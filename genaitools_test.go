@@ -72,7 +72,10 @@ func TestArithmetic(t *testing.T) {
 				}
 
 				// Call the callback with the args
-				callback := Arithmetic.Callback.(func(context.Context, *calculateArgs) (string, error))
+				callback, ok := Arithmetic.Callback.(func(context.Context, *calculateArgs) (string, error))
+				if !ok {
+					t.Fatal("unexpected arithmetic callback type")
+				}
 				result, err := callback(ctx, args)
 
 				// Check error expectation
@@ -138,7 +141,10 @@ func TestGetTodayClockTime(t *testing.T) {
 	before := time.Now()
 
 	// Call the callback directly with an empty struct
-	callback := GetTodayClockTime.Callback.(func(context.Context, *empty) (string, error))
+	callback, ok := GetTodayClockTime.Callback.(func(context.Context, *empty) (string, error))
+	if !ok {
+		t.Fatal("unexpected clock callback type")
+	}
 	result, err := callback(ctx, &empty{})
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
@@ -155,7 +161,7 @@ func TestGetTodayClockTime(t *testing.T) {
 	}
 
 	// Verify the time is within a reasonable range (last minute)
-	parsedTime, err := time.ParseInLocation("Monday 2006-01-02 15:04", result, time.Local)
+	parsedTime, err := time.ParseInLocation("Monday 2006-01-02 15:04", result, time.Local) //nolint:gosmopolitan // The tool reports the local clock.
 	if err != nil {
 		t.Fatalf("Failed to parse time %q: %v", result, err)
 	}
