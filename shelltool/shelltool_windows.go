@@ -192,12 +192,10 @@ func runWithAppContainer(cmdLine string, allowNetwork bool) (string, error) {
 	}()
 
 	si := windows.StartupInfoEx{
-		StartupInfo: windows.StartupInfo{
-			Cb:        uint32(unsafe.Sizeof(windows.StartupInfoEx{})),
-			Flags:     windows.STARTF_USESHOWWINDOW | windows.STARTF_USESTDHANDLES,
-			StdOutput: stdoutWrite,
-			StdErr:    stdoutWrite,
-		},
+		Cb:                      uint32(unsafe.Sizeof(windows.StartupInfoEx{})),
+		Flags:                   windows.STARTF_USESHOWWINDOW | windows.STARTF_USESTDHANDLES,
+		StdOutput:               stdoutWrite,
+		StdErr:                  stdoutWrite,
 		ProcThreadAttributeList: attrList,
 	}
 	pi := windows.ProcessInformation{}
