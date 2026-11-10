@@ -3,7 +3,7 @@ module github.com/maruel/genaitools
 go 1.27.3
 
 require (
-	github.com/maruel/genai v0.9.0
+	github.com/maruel/genai v0.11.0
 	github.com/maruel/roundtrippers v0.5.1
 	golang.org/x/sys v0.49.0
 )
